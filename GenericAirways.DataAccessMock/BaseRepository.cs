@@ -16,13 +16,27 @@ namespace GenericAirways.DataAccessMock
     public class BaseRepository<T> : IDisposable, IRepository<T> where T : class
     {
 
-        private DbContext context;
+        private MockContext<T> context;
+        private MockContext<T> Context{
+            get{
+                if(context==null)
+                    throw new Exception("Database context not set");
+
+                return context;
+
+            }
+        }
+
+        public void InitDbContext(IDbContext<T> context){
+            context=(MockContext<T>)context;
+            Context.EnsureCreation();
+        }
 
         public bool LazyLoadingEnabled
         {
             set
             {
-                //context.Configuration.LazyLoadingEnabled = value;
+                //Context.Configuration.LazyLoadingEnabled = value;
             }
         }
 
@@ -30,7 +44,7 @@ namespace GenericAirways.DataAccessMock
         {
             set
             {
-                //context.Configuration.ProxyCreationEnabled = value;
+                //Context.Configuration.ProxyCreationEnabled = value;
             }
         }
 
@@ -48,19 +62,19 @@ namespace GenericAirways.DataAccessMock
                 ((MockContext<T>)context).EnsureCreation();
                 //initialize();
             }
-            //context.Configuration.LazyLoadingEnabled = lazyLoading;
+            //Context.Configuration.LazyLoadingEnabled = lazyLoading;
         }
 
         private void initialize() {
             //context = new MyDealTaskEntities();
-            //context.Configuration.LazyLoadingEnabled = lazyLoading;
+            //Context.Configuration.LazyLoadingEnabled = lazyLoading;
         }
 
         public virtual void Add(params T[] items)
         {
             foreach (T item in items)
             {
-                context.Entry(item).State = EntityState.Added;
+                Context.Entry(item).State = EntityState.Added;
             }
             SaveChanges();
         }
@@ -68,7 +82,7 @@ namespace GenericAirways.DataAccessMock
         public virtual IList<T> GetAll(params Expression<Func<T, object>>[] navigationProperties)
         {
             List<T> list;
-            IQueryable<T> dbQuery = context.Set<T>();
+            IQueryable<T> dbQuery = Context.Set<T>();
 
             //Apply eager loading
             foreach (Expression<Func<T, object>> navigationProperty in navigationProperties)
@@ -84,7 +98,7 @@ namespace GenericAirways.DataAccessMock
              params Expression<Func<T, object>>[] navigationProperties)
         {
             List<T> list;
-            IQueryable<T> dbQuery = context.Set<T>();
+            IQueryable<T> dbQuery = Context.Set<T>();
 
             //Apply eager loading
             foreach (Expression<Func<T, object>> navigationProperty in navigationProperties)
@@ -101,7 +115,7 @@ namespace GenericAirways.DataAccessMock
              params Expression<Func<T, object>>[] navigationProperties)
         {
             T item = null;
-            IQueryable<T> dbQuery = context.Set<T>();
+            IQueryable<T> dbQuery = Context.Set<T>();
 
             //Apply eager loading
             foreach (Expression<Func<T, object>> navigationProperty in navigationProperties)
@@ -116,7 +130,7 @@ namespace GenericAirways.DataAccessMock
         public virtual Task<T> GetSingleAsync(Func<T, bool> where,
              params Expression<Func<T, object>>[] navigationProperties)
         {
-            IQueryable<T> dbQuery = context.Set<T>();
+            IQueryable<T> dbQuery = Context.Set<T>();
 
             //Apply eager loading
             foreach (Expression<Func<T, object>> navigationProperty in navigationProperties)
@@ -132,7 +146,7 @@ namespace GenericAirways.DataAccessMock
         {
             foreach (T item in items)
             {
-                context.Entry(item).State = EntityState.Modified;
+                Context.Entry(item).State = EntityState.Modified;
             }
             SaveChanges();
         }
@@ -142,10 +156,10 @@ namespace GenericAirways.DataAccessMock
         {
             foreach (T item in items)
             {
-                context.Set<T>().Attach(item);
+                Context.Set<T>().Attach(item);
                 foreach(var field in fields)
                 {
-                    context.Entry(item).Property(field).IsModified = true;
+                    Context.Entry(item).Property(field).IsModified = true;
                 }
             }
             SaveChanges();
@@ -155,7 +169,7 @@ namespace GenericAirways.DataAccessMock
         {
             foreach (T item in items)
             {
-                context.Entry(item).State = EntityState.Deleted;
+                Context.Entry(item).State = EntityState.Deleted;
             }
             SaveChanges();
         }
@@ -164,17 +178,17 @@ namespace GenericAirways.DataAccessMock
 
         /*public DbRawSqlQuery<T> SqlQuery(string sql, params object[] parameters)
         {
-            return context.Database.SqlQuery<T>(sql, parameters);
+            return Context.Database.SqlQuery<T>(sql, parameters);
         }*/
 
         public int ExecuteSqlCommand(string sql, params object[] parameters)
         {
-            return context.Database.ExecuteSqlCommand(sql, parameters);
+            return Context.Database.ExecuteSqlCommand(sql, parameters);
         }
 
         public virtual int Count(Func<T, bool> where)
         {
-            IQueryable<T> dbQuery = context.Set<T>();
+            IQueryable<T> dbQuery = Context.Set<T>();
 
             return dbQuery.Count(); //Apply where clause
         }
@@ -191,7 +205,7 @@ namespace GenericAirways.DataAccessMock
 
             try
             {
-                var ret = context.SaveChanges();
+                var ret = Context.SaveChanges();
                 Dispose();
                 initialize();
                 return ret;
@@ -243,7 +257,7 @@ namespace GenericAirways.DataAccessMock
             if (preAdd != null)
                 preAdd(item);
 
-            context.Entry(item).State = EntityState.Added;
+            Context.Entry(item).State = EntityState.Added;
 
             if (postAdd!=null)
                 postAdd(item);
@@ -266,7 +280,7 @@ namespace GenericAirways.DataAccessMock
         public RepositoryValidationException(Exception/*DbEntityValidationException*/ innerException, DbContext context)
             : base("There are some validation errors",innerException)
         {
-            //this.ValidationErrors = context.GetValidationErrors();
+            //this.ValidationErrors = Context.GetValidationErrors();
         }
 
         public string[] GetValidationErrors(){
@@ -290,7 +304,7 @@ namespace GenericAirways.DataAccessMock
     }
 
 
-    public class MockContext<T> : DbContext where T : class
+    public class MockContext<T> : DbContext, IDbContext<T> where T : class
     {
         public DbSet<T> Entities { get; set; }
         

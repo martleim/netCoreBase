@@ -37,7 +37,7 @@ namespace GenericAirways.WebApi.Controllers
         [HttpGet("{id:int}")]
         public IActionResult Get(int id)
         {
-            return Ok(RecordLocatorRepository.GetAll().First(pr=>pr.Id==id));
+            return Ok(RecordLocatorRepository.GetSingle(pr=>pr.Id==id));
         }
 
         [HttpPut("{id:int}")]

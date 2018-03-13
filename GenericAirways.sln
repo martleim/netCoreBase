@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAirways.WebApi", "GenericAirways.WebApi\GenericAirways.WebApi.csproj", "{95DD62C8-B829-4B0E-AE11-3A6E87E8303F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAirways.Web", "GenericAirways.WebApi\GenericAirways.Web.csproj", "{95DD62C8-B829-4B0E-AE11-3A6E87E8303F}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAirways.Business", "GenericAirways.Business\GenericAirways.Business.csproj", "{C9428742-7BFA-4AF0-8B02-550BA1C04F56}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAirways.DataAccess", "GenericAirways.DataAccess\GenericAirways.DataAccess.csproj", "{F15DA8A9-0A26-4088-BB3C-7EF14F590287}"

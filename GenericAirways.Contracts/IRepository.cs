@@ -9,6 +9,7 @@ namespace GenericAirways.Contracts
 {
     public interface IRepository <T> where T : class
     {
+        void InitDbContext(IDbContext<T> context);
         IList<T> GetAll(params Expression<Func<T, object>>[] navigationProperties);
         IList<T> GetList(Func<T, bool> where, params Expression<Func<T, object>>[] navigationProperties);
         T GetSingle(Func<T, bool> where, params Expression<Func<T, object>>[] navigationProperties);
