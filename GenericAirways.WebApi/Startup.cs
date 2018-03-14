@@ -94,9 +94,9 @@ namespace GenericAirways.WebApi
                 jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters()
                 {
                     /*ValidateActor = true,
-                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,*/
+                    ValidateAudience = true,
                     ValidIssuer = Configuration.GetSection("AppConfiguration")["Issuer"],
                     ValidAudience = Configuration.GetSection("AppConfiguration")["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetSection("AppConfiguration")["SigningKey"]))
