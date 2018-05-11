@@ -10,10 +10,10 @@ namespace GenericAirways.WebApi
 
 public class UserStore<TUser> : IUserStore<TUser>
     //IQueryableUserStore<TUser>,IUserPasswordStore<TUser>, IUserSecurityStampStore<TUser> 
-    where TUser : IdentityUser
+    where TUser :  GenericAirways.Model.User
     {
-        IRepository<TUser> UserRepository;
-        public UserStore(IRepository<TUser> userRepository){
+        IUserRepository UserRepository;
+        public UserStore(IUserRepository userRepository){
             UserRepository = userRepository;
         }
 
@@ -34,7 +34,7 @@ public class UserStore<TUser> : IUserStore<TUser>
         public Task<TUser> FindByIdAsync (string userId, CancellationToken cancellationToken){
             return Task.Run(()=>
             {
-                return UserRepository.GetSingle(pr=>pr.Id==userId);
+                return (TUser)UserRepository.GetSingle(pr=>pr.Id.ToString()==userId);
             });
         }
         public Task<TUser> FindByNameAsync (string normalizedUserName, CancellationToken cancellationToken){
@@ -49,10 +49,11 @@ public class UserStore<TUser> : IUserStore<TUser>
                 return UserRepository.GetSingle(pr=>pr==user).UserName;
             });
         }
+
         public Task<string> GetUserIdAsync (TUser user, CancellationToken cancellationToken){
             return Task.Run(()=>
             {
-                return "";
+                return UserRepository.GetSingle(pr=>pr.UserName == user.UserName && pr.Password == user.Password)?.Id.ToString();
             });
         }
         public Task<string> GetUserNameAsync (TUser user, CancellationToken cancellationToken){

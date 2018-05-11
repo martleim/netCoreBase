@@ -18,6 +18,7 @@ using JWT.Serializers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace GenericAirways.WebApi
 {
@@ -57,6 +58,7 @@ namespace GenericAirways.WebApi
 
             ComponentLoader.LoadContainer(services, "", "*.dll");
 
+            services.AddTransient<IUserStore<User>, GenericAirways.WebApi.UserStore<GenericAirways.Model.User>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,7 +92,7 @@ namespace GenericAirways.WebApi
             .AddJwtBearer(jwtBearerOptions =>
             {
                 jwtBearerOptions.SecurityTokenValidators.Clear();
-                jwtBearerOptions.SecurityTokenValidators.Add(new GenericAirways.WebApi.Controllers.JwtSecurityTokenHandlerCustom());
+                jwtBearerOptions.SecurityTokenValidators.Add(new JwtSecurityTokenHandler());
                 jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters()
                 {
                     /*ValidateActor = true,

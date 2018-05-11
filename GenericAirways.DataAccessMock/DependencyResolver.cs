@@ -17,6 +17,8 @@ namespace GenericAirways.DataAccessMock
             services.AddTransient<IPassengerRecordRepository, PassengerRecordRepository>();
             services.AddTransient<IPNLFileRepository, PNLFileRepository>();
             services.AddTransient<IRecordLocatorRepository, RecordLocatorRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            
         }
     }
 }

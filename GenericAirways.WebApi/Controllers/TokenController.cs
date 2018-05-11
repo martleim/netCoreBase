@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using GenericAirways.Model;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.AspNetCore.Identity;
 
 namespace GenericAirways.WebApi.Controllers
 {
@@ -19,20 +19,22 @@ namespace GenericAirways.WebApi.Controllers
     public class TokenController : Controller
     {
         private readonly IConfiguration _configuration;
-        public TokenController(IConfiguration configuration)
+        private readonly IUserStore<User> _userStore;
+        public TokenController(IConfiguration configuration, IUserStore<User> userStore)
         {
             _configuration = configuration;
+            _userStore = userStore;
         }
 
         [AllowAnonymous]
         [HttpPost]
         [Route("token")]
-        public IActionResult Post([FromBody]User user)
+        public async Task<IActionResult> Post([FromBody]User user)
         {
             if (ModelState.IsValid)
             {
-                var userId = GetUserIdFromCredentials(user);
-                if (userId == -1)
+                var userId = await GetUserIdFromCredentials(user);
+                if (userId == null)
                 {
                     return Unauthorized();
                 }
@@ -53,30 +55,25 @@ namespace GenericAirways.WebApi.Controllers
                     signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppConfiguration")["SigningKey"])), SecurityAlgorithms.HmacSha256)
                 );
 
-                return Ok(new { token = new JwtSecurityTokenHandlerCustom().WriteToken(token) });
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
 
             return BadRequest();
         }
 
-        private int GetUserIdFromCredentials(User user)
+        private async Task<string> GetUserIdFromCredentials(User user)
         {
-            var userId = -1;
-            if (user.UserName == "wally" /*&& loginViewModel.Password == "SuperSecret"*/)
-            {
-                userId = 5;
-            }
+            var userId = await _userStore.GetUserIdAsync(user, default(System.Threading.CancellationToken));
 
             return userId;
         }
     }
-    public class JwtSecurityTokenHandlerCustom : JwtSecurityTokenHandler{
+    /*public class JwtSecurityTokenHandlerCustom : JwtSecurityTokenHandler{
         public ClaimsPrincipal ValidateToken(string token, TokenValidationParameters validationParameters, out SecurityToken validatedToken)
         {
             var claims = base.ValidateToken(token, validationParameters, out validatedToken);
             Console.WriteLine("AAAAA "+claims);
             return claims;
         }
-
-    }
+    }*/
 }
