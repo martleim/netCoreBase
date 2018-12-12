@@ -35,10 +35,11 @@ namespace GenericAirways.WebApi.Controllers
             return null;
         }
 
+        [Authorize]
         [HttpGet("{id:int}")]
         public IActionResult Get(int id)
         {
-            return Ok(UserRepository.GetAll().First(u=>u.Id==id));
+            return Ok(UserRepository.GetSingle(u=>u.Id==id));
         }
 
         [HttpGet()]
@@ -60,6 +61,7 @@ namespace GenericAirways.WebApi.Controllers
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
+            Console.WriteLine("milonguero");
             UserRepository.Remove(new User() { Id = id });
             return Ok();
         }

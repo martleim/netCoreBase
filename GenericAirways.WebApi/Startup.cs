@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using GenericAirways.WebApi.Auth;
 
 namespace GenericAirways.WebApi
 {
@@ -58,7 +59,8 @@ namespace GenericAirways.WebApi
 
             ComponentLoader.LoadContainer(services, "", "*.dll");
 
-            services.AddTransient<IUserStore<User>, GenericAirways.WebApi.UserStore<GenericAirways.Model.User>>();
+            /*services.AddTransient<IUserStore<User>, UserStore<User>>();
+            services.AddTransient<IRoleStore<ApplicationRole>, RoleStore>();*/
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,17 +80,48 @@ namespace GenericAirways.WebApi
             });
             
             app.UseAuthentication();
-            
+            app.UseIdentity();
             app.UseMvc();
         }
 
         private void ConfigureSecurityServices(IServiceCollection services) {
-            /*services.AddIdentity<User, IdentityRole>()
-                //.AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddUserStore<UserStore>()
-                .AddDefaultTokenProviders();*/
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddIdentity<User, ApplicationRole>(options=>{
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 4;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                // Lockout settings
+                /*options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.AllowedForNewUsers = true;*/
+
+                // User settings
+                //options.User.RequireUniqueEmail = true;
+                
+            })
+            .AddDefaultTokenProviders();
+            services.AddTransient<IUserStore<User>, GenericAirways.WebApi.UserStore<User>>();
+            services.AddTransient<IRoleStore<ApplicationRole>, RoleStore>();
+            
+            services.AddSingleton<IJwtFactory<User>, JwtFactory>();
+
+            /*services.AddAuthorization(o => {
+                o.AddPolicy("apipolicy", b =>
+                {
+                    b.RequireAuthenticatedUser();
+                    b.RequireClaim(System.IdentityModel.Claims.ClaimTypes.Role, "Access.Api");
+                    b.AuthenticationSchemes = new List<string>{JwtBearerDefaults.AuthenticationScheme};
+                });
+            });*/
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(jwtBearerOptions =>
             {
                 jwtBearerOptions.SecurityTokenValidators.Clear();
@@ -103,7 +136,7 @@ namespace GenericAirways.WebApi
                     ValidAudience = Configuration.GetSection("AppConfiguration")["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetSection("AppConfiguration")["SigningKey"]))
                 };
-                jwtBearerOptions.Events = new JwtBearerEvents()
+                /*jwtBearerOptions.Events = new JwtBearerEvents()
                 {
                     OnAuthenticationFailed = c =>
                     {
@@ -127,7 +160,12 @@ namespace GenericAirways.WebApi
                         return Task.CompletedTask;
                     }
 
-                };
+                };*/
+            });
+
+            services.AddAuthentication().AddFacebook(facebookOptions => {
+                facebookOptions.AppId = "";//Configuration["Authentication:Facebook:AppId"];
+                facebookOptions.AppSecret = "";// Configuration["Authentication:Facebook:AppSecret"];
             });
 
 
@@ -163,5 +201,12 @@ namespace GenericAirways.WebApi
 
         }
     }
+
+    /*public class AddAuthorizeFiltersControllerConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IControllerModelConvention {
+        public void Apply(Microsoft.AspNetCore.Mvc.ApplicationModels.ControllerModel controller)
+        {
+            controller.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter("apipolicy"));
+        }
+    }*/
 
 }

@@ -46,6 +46,11 @@ namespace GenericAirways.Model
 		[Required(ErrorMessage = "Email is required.")]
     	[DataMember(Name = "Email")]
     	public string Email { get; set; }
+
+		//[StringLength(50, ErrorMessage = "Email has a maximum length of 50.")]
+		//[Required(ErrorMessage = "Email is required.")]
+    	//[DataMember(Name = "Email")]
+    	public long? FacebookId { get; set; }
     
     }
 }
